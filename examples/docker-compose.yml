@@ -1,0 +1,40 @@
+services:
+  keydb:
+    image: eqalpha/keydb:latest
+    restart: unless-stopped
+    command: keydb-server --requirepass "${REDIS_PASSWORD:-changeme}"
+    volumes:
+      - keydb-data:/data
+
+  coredns:
+    image: coredns/coredns:latest
+    restart: unless-stopped
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    volumes:
+      - ./Corefile:/Corefile:ro
+    depends_on:
+      - keydb
+
+  dns-sync:
+    image: dns-sync:latest
+    build:
+      context: ..
+      dockerfile: examples/Dockerfile
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: keydb:6379
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-changeme}"
+      DNS_ZONE: "srv.example.com."
+      DNS_TTL: "30"
+      DOCKER_NETWORK: ""          # optional: pin to a specific Docker network
+      STATIC_RECORDS_FILE: "/etc/dns-sync/static-records.yaml"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./static-records.yaml:/etc/dns-sync/static-records.yaml:ro
+    depends_on:
+      - keydb
+
+volumes:
+  keydb-data:

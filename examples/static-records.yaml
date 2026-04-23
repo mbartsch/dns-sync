@@ -1,0 +1,20 @@
+# Static DNS records for coredns-redis.
+# Each top-level key is a DNS name within the zone; "@" is the zone apex.
+# Values follow the coredns-redis record format.
+
+"@":
+  soa:
+    ttl: 300
+    mbox: "hostmaster.example.com."
+    ns: "ns1.example.com."
+    refresh: 300
+    retry: 60
+    expire: 3600
+  ns:
+    - host: "ns1.example.com."
+      ttl: 300
+
+ns1:
+  a:
+    - ttl: 300
+      ip: "192.168.1.10"
