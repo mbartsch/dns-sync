@@ -20,6 +20,18 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var (
+	version = "dev"
+	commit  = ""
+)
+
+func versionString() string {
+	if commit == "" {
+		return version
+	}
+	return version + "-" + commit
+}
+
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
@@ -421,8 +433,8 @@ func (s *Syncer) fullSync(ctx context.Context) {
 
 func main() {
 	cfg := loadConfig()
-	log.Printf("dns-sync starting | host=%s zone=%s redis=%s socket=%s",
-		cfg.Hostname, cfg.Zone, cfg.RedisAddr, cfg.DockerSocket)
+	log.Printf("dns-sync %s starting | host=%s zone=%s redis=%s socket=%s",
+		versionString(), cfg.Hostname, cfg.Zone, cfg.RedisAddr, cfg.DockerSocket)
 
 	syncer := NewSyncer(cfg)
 	ctx, cancel := context.WithCancel(context.Background())

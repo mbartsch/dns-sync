@@ -20,8 +20,11 @@ services:
   dns-sync:
     image: dns-sync:latest
     build:
-      context: ..
-      dockerfile: examples/Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: "${DNS_SYNC_VERSION:-dev}"
+        REF: "${DNS_SYNC_REF:-master}"
     restart: unless-stopped
     environment:
       REDIS_ADDR: keydb:6379
