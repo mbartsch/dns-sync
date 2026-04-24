@@ -1,6 +1,6 @@
 # dns-sync
 
-Watches Docker container lifecycle events and keeps a [coredns-redis](https://github.com/sebageek/coredns-redis) zone hash in sync. Each running container gets an A record `<container-name>.<zone>` pointing at its IP. Records are removed when containers stop or die.
+Watches Docker container lifecycle events and keeps a [coredns-redis](https://github.com/mbartsch/coredns-redis) zone hash in sync. Each running container gets an A record `<container-name>.<zone>` pointing at its IP. Records are removed when containers stop or die.
 
 ## How it works
 
