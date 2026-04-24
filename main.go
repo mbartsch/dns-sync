@@ -58,8 +58,8 @@ func loadConfig() Config {
 		Zone:              envOr("DNS_ZONE", "srv.bartsch.red."),
 		Hostname:          envOr("HOSTNAME", hostname),
 		TTL:               envInt("DNS_TTL", 30),
-		Network:           os.Getenv("DOCKER_NETWORK"),
-		StaticRecordsFile: os.Getenv("STATIC_RECORDS_FILE"),
+		Network:           stripQuotes(os.Getenv("DOCKER_NETWORK")),
+		StaticRecordsFile: stripQuotes(os.Getenv("STATIC_RECORDS_FILE")),
 	}
 }
 
@@ -67,8 +67,8 @@ func loadConfig() Config {
 // Both being set at once is a fatal misconfiguration.
 func secretOrEnv(key string) string {
 	fileKey := key + "_FILE"
-	filePath := os.Getenv(fileKey)
-	plainVal := os.Getenv(key)
+	filePath := stripQuotes(os.Getenv(fileKey))
+	plainVal := stripQuotes(os.Getenv(key))
 	if filePath != "" && plainVal != "" {
 		log.Fatalf("CONFIG ERROR: both %s and %s are set — use only one", key, fileKey)
 	}
@@ -388,6 +388,7 @@ func (s *Syncer) applyStaticRecords(ctx context.Context) {
 	}
 	pipe := s.rdb.Pipeline()
 	for name, val := range records {
+		log.Printf("Static record: %s → %s", name, val)
 		pipe.HSet(ctx, s.zoneKey(), name, string(val))
 	}
 	if _, err := pipe.Exec(ctx); err != nil {
@@ -506,15 +507,22 @@ func main() {
 // Helpers
 // ---------------------------------------------------------------------------
 
+func stripQuotes(s string) string {
+	if len(s) >= 2 && ((s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'')) {
+		return s[1 : len(s)-1]
+	}
+	return s
+}
+
 func envOr(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
+	if v := stripQuotes(os.Getenv(key)); v != "" {
 		return v
 	}
 	return fallback
 }
 
 func envInt(key string, fallback int) int {
-	if v := os.Getenv(key); v != "" {
+	if v := stripQuotes(os.Getenv(key)); v != "" {
 		var i int
 		if _, err := fmt.Sscanf(v, "%d", &i); err == nil {
 			return i
